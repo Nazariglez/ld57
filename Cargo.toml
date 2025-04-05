@@ -1,0 +1,44 @@
+[package]
+name = "ld57"
+version = "0.1.0"
+edition = "2024"
+publish = false
+
+[profile.release]
+codegen-units = 1
+lto = true
+panic = "abort"
+strip = true
+incremental = false
+debug = false
+opt-level = 3
+
+[profile.dev]
+opt-level = 1
+
+[profile.dev.package."*"]
+opt-level = 3
+
+[dependencies]
+log = "0.4"
+rustc-hash = "2.1.1"
+
+[dependencies.rkit]
+path = "../rkit"
+default-features = false
+features = [
+  "draw",
+  "draw-default-font",
+  "audio",
+  "random",
+  "assets",
+  "logs",
+  "postfx",
+  "ui",
+  "ecs",
+]
+
+[features]
+default = ["webgl"]
+final = ["log/release_max_level_warn"]
+webgl = ["rkit/webgl"]
