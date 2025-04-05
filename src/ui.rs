@@ -3,6 +3,9 @@ use rkit::prelude::*;
 #[derive(Component, Clone, Copy)]
 pub struct UILoadLayout;
 
+#[derive(Component, Clone, Copy)]
+pub struct UIGameLayout;
+
 pub fn ui_plugin(app: &mut App) {
     app.add_systems(OnUpdate, click::dispatch_on_click_system);
 }

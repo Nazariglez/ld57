@@ -2,12 +2,14 @@ mod assets;
 mod camera;
 mod components;
 mod consts;
+mod postfx;
 mod render;
 mod screens;
 mod ui;
 
 use camera::camera_plugin;
 use consts::*;
+use postfx::post_fx_plugin;
 use render::render_plugin;
 use rkit::prelude::*;
 use screens::screens_plugin;
@@ -26,6 +28,7 @@ pub fn main() -> Result<(), String> {
         .add_plugin(ui_plugin)
         .add_plugin(screens_plugin)
         .add_plugin(render_plugin)
+        .add_plugin(post_fx_plugin)
         .run()
 }
 
@@ -41,15 +44,15 @@ fn logging_plugin() -> LogPlugin {
 fn window_plugin() -> WindowConfigPlugin {
     let size = RESOLUTION.as_uvec2();
     let plugin = WindowConfigPlugin::default()
-        .title("Economic Depths")
+        .title(TITLE)
         .max_fps(60)
         .vsync(true)
         .pixelated(true)
         .min_size(size.x, size.y)
-        .size(size.x, size.y);
+        .size(size.x * 2, size.y * 2);
 
-    // #[cfg(all(target_arch = "wasm32", debug_assertions, not(feature = "final")))]
-    // let plugin = plugin.maximized(true);
+    #[cfg(all(target_arch = "wasm32", debug_assertions, not(feature = "final")))]
+    let plugin = plugin.maximized(true);
 
     plugin
 }

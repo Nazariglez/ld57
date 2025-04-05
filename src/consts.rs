@@ -19,8 +19,18 @@ pub const PICO8_INDIGO: Color = Color::rgba_u8(131, 118, 156, 255); // #83769C
 pub const PICO8_PINK: Color = Color::rgba_u8(255, 119, 168, 255); // #FF77A8
 pub const PICO8_PEACH: Color = Color::rgba_u8(255, 204, 170, 255); // #FFCCAA
 
+pub const TITLE: &str = "Economics Depth";
+
 // Game's resolutions
-pub const RESOLUTION: Vec2 = Vec2::new(640.0, 512.0);
+// pub const RESOLUTION: Vec2 = Vec2::new(640.0, 512.0);
+// pub const RESOLUTION: Vec2 = Vec2::new(800.0, 450.0);
+pub const RESOLUTION: Vec2 = Vec2::new(400.0, 225.0);
+
+pub const TILE_GAP: f32 = 1.0;
+
+pub const TILE_SIZE: f32 = 16.0;
+
+pub const LAND_SIZE: Vec2 = Vec2::splat(8.0);
 
 // Minimum time to load the bar
 pub const LOAD_MIN_TIME: f32 = 1.0;

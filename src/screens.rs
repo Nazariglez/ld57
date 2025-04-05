@@ -8,18 +8,50 @@ pub enum AppScreen {
 
 pub fn screens_plugin(app: &mut App) {
     app.with_screen(AppScreen::Load)
-        .add_plugin(load_screen::plugin);
+        .add_plugin(load_screen::plugin)
+        .add_plugin(game_screen::plugin);
+}
+
+mod game_screen {
+    use rkit::prelude::*;
+
+    use crate::ui::UIGameLayout;
+
+    use super::AppScreen;
+    pub fn plugin(app: &mut App) {
+        let screen = AppScreen::Game;
+        app.add_plugin(UILayoutPlugin::<UIGameLayout>::default())
+            .add_systems(OnEnter(screen), setup_system)
+            .add_systems(OnExit(screen), cleanup_system);
+    }
+
+    fn setup_system() {
+        // TODO: setup UI here?
+    }
+
+    fn cleanup_system(mut cmds: Commands, ui_nodes: Query<Entity, With<UIGameLayout>>) {
+        // clean ui nodes
+        ui_nodes
+            .iter()
+            .for_each(|e| cmds.despawn_ui_node(UIGameLayout, e));
+    }
 }
 
 mod load_screen {
     use std::ops::Deref;
 
-    use rkit::{draw::create_draw_2d, gfx, math::Vec2, prelude::*};
+    use rkit::{
+        draw::create_draw_2d,
+        gfx,
+        math::{Vec2, vec2},
+        prelude::*,
+    };
 
     use crate::{
         assets::{AssetLoader, init_assets},
         camera::Cam,
         consts::*,
+        postfx::rtf,
         ui::{UILoadLayout, load_bar::UILoadBar},
     };
 
@@ -59,7 +91,7 @@ mod load_screen {
             ),
         )
         .with_children(|cmd| {
-            cmd.add((UILoadBar::default(), UIStyle::default().size(300.0, 30.0)));
+            cmd.add((UILoadBar::default(), UIStyle::default().size(240.0, 24.0)));
         });
     }
 
@@ -83,15 +115,22 @@ mod load_screen {
 
     fn transition_to_game(
         mut cmds: Commands,
-        load_bar: Single<&UILoadBar, With<UILoadLayout>>,
+        load_bar: Single<(&UILoadBar, &mut UIStyle), With<UILoadLayout>>,
         mouse: Res<Mouse>,
         keyboard: Res<Keyboard>,
     ) {
+        let (load_bar, mut style) = load_bar.into_inner();
         let is_loading = load_bar.progress < 1.0;
         if is_loading {
             return;
         }
 
+        #[cfg(not(feature = "final"))]
+        {
+            cmds.queue(ChangeScreen(AppScreen::Game));
+        }
+
+        *style = style.hide();
         let mouse_interaction = !mouse.pressed_buttons().is_empty();
         let keyboard_interaction = !keyboard.pressed_keys().is_empty();
         let did_interact = mouse_interaction || keyboard_interaction;
@@ -128,17 +167,25 @@ mod load_screen {
             if is_loaded {
                 let t = world.resource::<Time>().elapsed_f32();
                 let alpha = 0.5 + 0.5 * (t * 2.0).sin();
-                draw.text("Tap or press anything to play")
-                    .alpha(alpha)
-                    .origin(Vec2::splat(0.5))
-                    .translate(RESOLUTION * 0.5 + Vec2::Y * 100.0)
+                draw.text(TITLE)
+                    .origin(vec2(0.5, 1.0))
+                    .translate(RESOLUTION * 0.5)
                     .max_width(RESOLUTION.x * 0.8)
                     .h_align_center()
                     .color(PICO8_BLACK)
-                    .size(32.0);
+                    .size(24.0);
+
+                draw.text("Click or press to start")
+                    .alpha(alpha)
+                    .origin(vec2(0.5, 0.0))
+                    .translate(RESOLUTION * 0.5 + vec2(0.0, 24.0))
+                    .max_width(RESOLUTION.x * 0.8)
+                    .h_align_center()
+                    .color(PICO8_INDIGO)
+                    .size(12.0);
             }
         }
 
-        gfx::render_to_frame(&draw).unwrap();
+        rtf(&draw).unwrap();
     }
 }

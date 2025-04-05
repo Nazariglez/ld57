@@ -3,9 +3,11 @@ use rkit::{
     audio::{Sound, create_sound},
     draw::{Font, Sprite, create_font, create_sprite},
     gfx::{self, *},
+    math::{Rect, Vec2},
     prelude::*,
 };
 
+use crate::consts::*;
 use crate::screens::AppScreen;
 
 const ASSETS_DIR: &str = "./assets";
@@ -34,12 +36,15 @@ impl AssetLoader {
             .with_mag_filter(TextureFilter::Nearest)
             .build()?;
 
-        let list = AssetList::new(&[&data_dir("kenney_pixel-webfont.ttf")])
-            .with_extension_parser("png", move |id, data| {
-                parse_sprite(id, data, &nearest_sampler)
-            })
-            .with_extension_parser("ogg", parse_ogg)
-            .with_extension_parser("ttf", parse_font);
+        let list = AssetList::new(&[
+            &data_dir("kenney_pixel-webfont.ttf"),
+            &img_dir("spritesheet.png"),
+        ])
+        .with_extension_parser("png", move |id, data| {
+            parse_sprite(id, data, &nearest_sampler)
+        })
+        .with_extension_parser("ogg", parse_ogg)
+        .with_extension_parser("ttf", parse_font);
 
         Ok(Self(list))
     }
@@ -97,12 +102,18 @@ fn update_assets_loader_system(mut loader: ResMut<AssetLoader>, mut cmds: Comman
 #[derive(Resource)]
 pub struct Assets {
     pub font: Font,
+
+    pub empty_square: Sprite,
 }
 
 impl Assets {
     fn new(list: &AssetMap) -> Result<Self, String> {
         let font = list.get(&data_dir("kenney_pixel-webfont.ttf"))?;
 
-        Ok(Self { font })
+        let tile_size = Vec2::splat(TILE_SIZE);
+        let spritesheet = list.get::<Sprite>(&img_dir("spritesheet.png"))?;
+        let empty_square = spritesheet.clone_with_frame(Rect::new(Vec2::ZERO, tile_size));
+
+        Ok(Self { font, empty_square })
     }
 }
