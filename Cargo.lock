@@ -1667,6 +1667,8 @@ dependencies = [
  "log",
  "rkit",
  "rustc-hash 2.1.1",
+ "strum 0.27.1",
+ "strum_macros 0.27.1",
 ]
 
 [[package]]

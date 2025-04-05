@@ -22,6 +22,8 @@ opt-level = 3
 [dependencies]
 log = "0.4"
 rustc-hash = "2.1.1"
+strum = "0.27"
+strum_macros = "0.27"
 
 [dependencies.rkit]
 path = "../rkit"

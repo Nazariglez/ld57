@@ -3,7 +3,7 @@ use rkit::{
     audio::{Sound, create_sound},
     draw::{Font, Sprite, create_font, create_sprite},
     gfx::{self, *},
-    math::{Rect, Vec2},
+    math::{Rect, Vec2, vec2},
     prelude::*,
 };
 
@@ -104,6 +104,22 @@ pub struct Assets {
     pub font: Font,
 
     pub empty_square: Sprite,
+    pub dotted_square: Sprite,
+    pub white_square: Sprite,
+    pub money: Sprite,
+    pub cobber: Sprite,
+    pub iron: Sprite,
+    pub silver: Sprite,
+    pub gold: Sprite,
+    pub wood: Sprite,
+    pub food: Sprite,
+    pub people: Sprite,
+    pub ring: Sprite,
+    pub farm: Sprite,
+    pub house: Sprite,
+    pub forest: Sprite,
+    pub factory: Sprite,
+    pub shop: Sprite,
 }
 
 impl Assets {
@@ -112,8 +128,51 @@ impl Assets {
 
         let tile_size = Vec2::splat(TILE_SIZE);
         let spritesheet = list.get::<Sprite>(&img_dir("spritesheet.png"))?;
-        let empty_square = spritesheet.clone_with_frame(Rect::new(Vec2::ZERO, tile_size));
+        let row = 0.0;
+        let empty_square = spritesheet.clone_with_frame(Rect::new(vec2(0.0, row), tile_size));
+        let dotted_square =
+            spritesheet.clone_with_frame(Rect::new(vec2(TILE_SIZE, row), tile_size));
+        let white_square =
+            spritesheet.clone_with_frame(Rect::new(vec2(TILE_SIZE * 2.0, row), tile_size));
 
-        Ok(Self { font, empty_square })
+        let row = TILE_SIZE * 2.0;
+        let money = spritesheet.clone_with_frame(Rect::new(vec2(0.0, row), tile_size));
+        let cobber = spritesheet.clone_with_frame(Rect::new(vec2(TILE_SIZE, row), tile_size));
+        let iron = spritesheet.clone_with_frame(Rect::new(vec2(TILE_SIZE * 2.0, row), tile_size));
+        let silver = spritesheet.clone_with_frame(Rect::new(vec2(TILE_SIZE * 3.0, row), tile_size));
+        let gold = spritesheet.clone_with_frame(Rect::new(vec2(TILE_SIZE * 4.0, row), tile_size));
+        let wood = spritesheet.clone_with_frame(Rect::new(vec2(TILE_SIZE * 5.0, row), tile_size));
+        let food = spritesheet.clone_with_frame(Rect::new(vec2(TILE_SIZE * 6.0, row), tile_size));
+        let people = spritesheet.clone_with_frame(Rect::new(vec2(TILE_SIZE * 7.0, row), tile_size));
+        let ring = spritesheet.clone_with_frame(Rect::new(vec2(TILE_SIZE * 8.0, row), tile_size));
+
+        let row = TILE_SIZE * 4.0;
+        let farm = spritesheet.clone_with_frame(Rect::new(vec2(0.0, row), tile_size));
+        let house = spritesheet.clone_with_frame(Rect::new(vec2(TILE_SIZE, row), tile_size));
+        let forest = spritesheet.clone_with_frame(Rect::new(vec2(TILE_SIZE * 2.0, row), tile_size));
+        let factory =
+            spritesheet.clone_with_frame(Rect::new(vec2(TILE_SIZE * 3.0, row), tile_size));
+        let shop = spritesheet.clone_with_frame(Rect::new(vec2(TILE_SIZE * 4.0, row), tile_size));
+
+        Ok(Self {
+            font,
+            empty_square,
+            dotted_square,
+            white_square,
+            money,
+            cobber,
+            iron,
+            silver,
+            gold,
+            wood,
+            food,
+            people,
+            ring,
+            farm,
+            house,
+            forest,
+            factory,
+            shop,
+        })
     }
 }

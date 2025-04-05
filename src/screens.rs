@@ -15,14 +15,15 @@ pub fn screens_plugin(app: &mut App) {
 mod game_screen {
     use rkit::prelude::*;
 
-    use crate::ui::UIGameLayout;
+    use crate::{game::game_plugin, ui::UIGameLayout};
 
     use super::AppScreen;
     pub fn plugin(app: &mut App) {
         let screen = AppScreen::Game;
         app.add_plugin(UILayoutPlugin::<UIGameLayout>::default())
             .add_systems(OnEnter(screen), setup_system)
-            .add_systems(OnExit(screen), cleanup_system);
+            .add_systems(OnExit(screen), cleanup_system)
+            .add_plugin(game_plugin);
     }
 
     fn setup_system() {

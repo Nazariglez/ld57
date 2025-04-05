@@ -26,6 +26,7 @@ pub const TITLE: &str = "Economics Depth";
 // pub const RESOLUTION: Vec2 = Vec2::new(800.0, 450.0);
 pub const RESOLUTION: Vec2 = Vec2::new(400.0, 225.0);
 
+pub const LAND_GAP: f32 = 2.0;
 pub const TILE_GAP: f32 = 1.0;
 
 pub const TILE_SIZE: f32 = 16.0;

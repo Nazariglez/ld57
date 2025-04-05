@@ -6,7 +6,15 @@ use rkit::{
     prelude::*,
 };
 
-use crate::{assets::Assets, camera::Cam, consts::*, postfx::rtf, screens::AppScreen};
+use crate::{
+    assets::Assets,
+    camera::Cam,
+    components::Pos,
+    consts::*,
+    game::{Building, Land},
+    postfx::rtf,
+    screens::AppScreen,
+};
 
 pub fn render_plugin(app: &mut App) {
     app.add_systems(OnSetup, init_resources_system)
@@ -29,7 +37,7 @@ fn init_resources_system(mut cmds: Commands) {
 
 // generate the render systems pipeline
 fn create_render_wrapper(cmds: &mut Commands) -> RenderSysFn {
-    let mut systems = vec![cmds.register_system(draw_initial_layer_system)];
+    let mut systems = vec![cmds.register_system(draw_land_layer_system)];
 
     #[cfg(debug_assertions)]
     {
@@ -57,28 +65,85 @@ fn render(world: &mut World) {
 }
 
 // -- render systems
-fn draw_initial_layer_system(mut draw: InMut<Draw2D>, cam: Single<&Cam>, assets: Res<Assets>) {
+fn draw_land_layer_system(
+    mut draw: InMut<Draw2D>,
+    lands: Query<(&Land, &Pos)>,
+    cam: Single<&Cam>,
+    assets: Res<Assets>,
+) {
     draw.set_camera(cam.into_inner().deref());
     draw.clear(PICO8_BLACK);
 
     let tile_with_gap = TILE_SIZE + TILE_GAP;
-    let pos = RESOLUTION * 0.5;
-    draw.rect(Vec2::ZERO, LAND_SIZE * tile_with_gap)
+    lands.iter().for_each(|(land, pos)| {
+        // outline
+        let is_hover = land.hover.is_some();
+        let stroke_width = 2.0;
+        let stroke_color = if is_hover {
+            PICO8_INDIGO
+        } else {
+            PICO8_DARK_GRAY
+        };
+        draw.rect(
+            Vec2::ZERO - LAND_GAP - stroke_width * 0.5,
+            LAND_SIZE * tile_with_gap + LAND_GAP * 2.0,
+        )
+        .alpha(0.4)
         .origin(Vec2::splat(0.5))
-        .translate(pos)
-        .stroke_color(PICO8_INDIGO)
-        .stroke(2.0);
+        .translate(pos.0)
+        .stroke_color(stroke_color)
+        .stroke(stroke_width);
 
-    // Draw empty square for each tile in the grid
-    let UVec2 { x: cols, y: rows } = LAND_SIZE.as_uvec2();
-    for y in 0..rows {
-        for x in 0..cols {
-            let tile = UVec2::new(x, y).as_vec2();
-            let tile_pos =
-                tile * tile_with_gap - (LAND_SIZE * tile_with_gap * 0.5) + TILE_SIZE * 0.5;
-            draw.image(&assets.empty_square)
-                .translate(pos + tile_pos - TILE_SIZE * 0.5)
-                .alpha(0.4);
+        // inner grid
+        let UVec2 { x: cols, y: rows } = LAND_SIZE.as_uvec2();
+        for y in 0..rows {
+            for x in 0..cols {
+                let pos = pos.0 - LAND_GAP;
+
+                let tile = UVec2::new(x, y);
+                let tile_f32 = tile.as_vec2();
+                let tile_pos = pos + (tile_f32 * tile_with_gap - (LAND_SIZE * tile_with_gap * 0.5));
+
+                let idx = (y * cols + x) as usize;
+                match land.buildings[idx] {
+                    Building::Empty => {
+                        draw.image(&assets.dotted_square)
+                            .translate(tile_pos)
+                            .alpha(0.02);
+                    }
+                    Building::Farm => {
+                        draw.image(&assets.farm).translate(tile_pos);
+                    }
+                    Building::House => {
+                        draw.image(&assets.house).translate(tile_pos);
+                    }
+                    Building::Forest => {
+                        draw.image(&assets.forest).translate(tile_pos);
+                    }
+                    Building::Factory => {
+                        draw.image(&assets.factory).translate(tile_pos);
+                    }
+                    Building::Shop => {
+                        draw.image(&assets.shop).translate(tile_pos);
+                    }
+                }
+
+                if let Some(hover) = land.hover {
+                    if hover == tile {
+                        draw.image(&assets.empty_square)
+                            .translate(tile_pos)
+                            .alpha(0.1);
+                    }
+                }
+
+                if let Some(focus) = land.focus {
+                    if focus == tile {
+                        draw.image(&assets.empty_square)
+                            .translate(tile_pos)
+                            .alpha(0.6);
+                    }
+                }
+            }
         }
-    }
+    });
 }

@@ -2,6 +2,7 @@ mod assets;
 mod camera;
 mod components;
 mod consts;
+mod game;
 mod postfx;
 mod render;
 mod screens;
