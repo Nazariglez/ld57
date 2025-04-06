@@ -31,7 +31,7 @@ pub const TILE_GAP: f32 = 1.0;
 
 pub const TILE_SIZE: f32 = 16.0;
 
-pub const LAND_SIZE: Vec2 = Vec2::splat(8.0);
+pub const LAND_SIZE: Vec2 = Vec2::splat(3.0);
 
 // Minimum time to load the bar
 pub const LOAD_MIN_TIME: f32 = 1.0;

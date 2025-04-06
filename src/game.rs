@@ -25,6 +25,7 @@ pub enum Building {
     Forest,
     Factory,
     Shop,
+    Mine,
 }
 
 #[derive(Component)]

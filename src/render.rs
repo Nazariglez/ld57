@@ -105,28 +105,17 @@ fn draw_land_layer_system(
                 let tile_pos = pos + (tile_f32 * tile_with_gap - (LAND_SIZE * tile_with_gap * 0.5));
 
                 let idx = (y * cols + x) as usize;
-                match land.buildings[idx] {
-                    Building::Empty => {
-                        draw.image(&assets.dotted_square)
-                            .translate(tile_pos)
-                            .alpha(0.02);
-                    }
-                    Building::Farm => {
-                        draw.image(&assets.farm).translate(tile_pos);
-                    }
-                    Building::House => {
-                        draw.image(&assets.house).translate(tile_pos);
-                    }
-                    Building::Forest => {
-                        draw.image(&assets.forest).translate(tile_pos);
-                    }
-                    Building::Factory => {
-                        draw.image(&assets.factory).translate(tile_pos);
-                    }
-                    Building::Shop => {
-                        draw.image(&assets.shop).translate(tile_pos);
-                    }
-                }
+                let (img, alpha) = match land.buildings[idx] {
+                    Building::Empty => (&assets.dotted_square, 0.02),
+                    Building::Farm => (&assets.farm, 1.0),
+                    Building::House => (&assets.house, 1.0),
+                    Building::Forest => (&assets.forest, 1.0),
+                    Building::Factory => (&assets.factory, 1.0),
+                    Building::Shop => (&assets.shop, 1.0),
+                    Building::Mine => (&assets.mine, 1.0),
+                };
+
+                draw.image(img).translate(tile_pos).alpha(alpha);
 
                 if let Some(hover) = land.hover {
                     if hover == tile {
