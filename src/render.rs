@@ -11,9 +11,10 @@ use crate::{
     camera::Cam,
     components::Pos,
     consts::*,
-    game::{Building, Land},
+    game::{BuildKind, Building, Land},
     postfx::rtf,
     screens::AppScreen,
+    ui::UIGameLayout,
 };
 
 pub fn render_plugin(app: &mut App) {
@@ -61,6 +62,8 @@ fn render(world: &mut World) {
         (r_sys.callback)(world, &mut draw).unwrap();
     });
 
+    draw_ui_layout::<UIGameLayout>(&mut draw, world);
+
     rtf(&draw).unwrap();
 }
 
@@ -68,6 +71,7 @@ fn render(world: &mut World) {
 fn draw_land_layer_system(
     mut draw: InMut<Draw2D>,
     lands: Query<(&Land, &Pos)>,
+    buildings: Query<(&BuildKind, &Building)>,
     cam: Single<&Cam>,
     assets: Res<Assets>,
 ) {
@@ -94,28 +98,66 @@ fn draw_land_layer_system(
         .stroke_color(stroke_color)
         .stroke(stroke_width);
 
+        let relative_pos = pos.0 - LAND_GAP;
+
         // inner grid
         let UVec2 { x: cols, y: rows } = LAND_SIZE.as_uvec2();
         for y in 0..rows {
             for x in 0..cols {
-                let pos = pos.0 - LAND_GAP;
-
                 let tile = UVec2::new(x, y);
                 let tile_f32 = tile.as_vec2();
-                let tile_pos = pos + (tile_f32 * tile_with_gap - (LAND_SIZE * tile_with_gap * 0.5));
+                let tile_pos =
+                    relative_pos + (tile_f32 * tile_with_gap - (LAND_SIZE * tile_with_gap * 0.5));
 
-                let idx = (y * cols + x) as usize;
-                let (img, alpha) = match land.buildings[idx] {
-                    Building::Empty => (&assets.dotted_square, 0.02),
-                    Building::Farm => (&assets.farm, 1.0),
-                    Building::House => (&assets.house, 1.0),
-                    Building::Forest => (&assets.forest, 1.0),
-                    Building::Factory => (&assets.factory, 1.0),
-                    Building::Shop => (&assets.shop, 1.0),
-                    Building::Mine => (&assets.mine, 1.0),
-                };
+                draw.image(&assets.dotted_square)
+                    .translate(tile_pos)
+                    .alpha(0.02);
 
-                draw.image(img).translate(tile_pos).alpha(alpha);
+                if let Some(hover) = land.hover {
+                    if hover == tile {
+                        draw.image(&assets.empty_square)
+                            .translate(tile_pos)
+                            .alpha(0.1);
+                    }
+                }
+
+                if let Some(focus) = land.focus {
+                    if focus == tile {
+                        draw.image(&assets.empty_square)
+                            .translate(tile_pos)
+                            .alpha(0.6);
+                    }
+                }
+            }
+        }
+
+        // draw buildings
+        land.buildings.iter().for_each(|entity| {
+            let Ok((kind, building)) = buildings.get(*entity) else {
+                return;
+            };
+
+            let tile_f32 = building.pos.as_vec2();
+            let tile_pos =
+                relative_pos + (tile_f32 * tile_with_gap - (LAND_SIZE * tile_with_gap * 0.5));
+            let img = match kind {
+                BuildKind::Farm => &assets.farm,
+                BuildKind::House => &assets.house,
+                BuildKind::Forest => &assets.forest,
+                BuildKind::Factory => &assets.factory,
+                BuildKind::Shop => &assets.shop,
+                BuildKind::Mine => &assets.mine,
+            };
+            draw.image(img).translate(tile_pos);
+        });
+
+        // draw overlay
+        for y in 0..rows {
+            for x in 0..cols {
+                let tile = UVec2::new(x, y);
+                let tile_f32 = tile.as_vec2();
+                let tile_pos =
+                    relative_pos + (tile_f32 * tile_with_gap - (LAND_SIZE * tile_with_gap * 0.5));
 
                 if let Some(hover) = land.hover {
                     if hover == tile {

@@ -13,21 +13,44 @@ pub fn screens_plugin(app: &mut App) {
 }
 
 mod game_screen {
-    use rkit::prelude::*;
+    use std::ops::Deref;
 
-    use crate::{game::game_plugin, ui::UIGameLayout};
+    use rkit::{gfx::Color, prelude::*};
+
+    use crate::{
+        camera::Cam,
+        consts::PICO8_WHITE,
+        game::game_plugin,
+        ui::{UIGameLayout, load_bar::UILoadBar},
+    };
 
     use super::AppScreen;
     pub fn plugin(app: &mut App) {
         let screen = AppScreen::Game;
         app.add_plugin(UILayoutPlugin::<UIGameLayout>::default())
+            .add_screen_systems(screen, OnUpdate, update_system)
             .add_systems(OnEnter(screen), setup_system)
             .add_systems(OnExit(screen), cleanup_system)
             .add_plugin(game_plugin);
     }
 
-    fn setup_system() {
-        // TODO: setup UI here?
+    fn setup_system(mut cmds: Commands) {
+        let layout = UIGameLayout;
+        let root = cmds
+            .spawn_ui_node(
+                layout,
+                (
+                    UIContainer {
+                        // bg_color: Some(Color::RED),
+                        ..Default::default()
+                    },
+                    UIStyle::default()
+                        .size_full()
+                        .justify_content_center()
+                        .align_items_center(),
+                ),
+            )
+            .entity_id();
     }
 
     fn cleanup_system(mut cmds: Commands, ui_nodes: Query<Entity, With<UIGameLayout>>) {
@@ -36,17 +59,16 @@ mod game_screen {
             .iter()
             .for_each(|e| cmds.despawn_ui_node(UIGameLayout, e));
     }
+
+    fn update_system(cam: Single<&Cam>, mut layout: ResMut<UILayout<UIGameLayout>>) {
+        layout.set_camera(cam.into_inner().deref());
+    }
 }
 
 mod load_screen {
     use std::ops::Deref;
 
-    use rkit::{
-        draw::create_draw_2d,
-        gfx,
-        math::{Vec2, vec2},
-        prelude::*,
-    };
+    use rkit::{draw::create_draw_2d, math::vec2, prelude::*};
 
     use crate::{
         assets::{AssetLoader, init_assets},
