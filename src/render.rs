@@ -80,6 +80,8 @@ fn draw_land_layer_system(
 
     let tile_with_gap = TILE_SIZE + TILE_GAP;
     lands.iter().for_each(|(land, pos)| {
+        let relative_pos = pos.0 - LAND_GAP;
+
         // outline
         let is_hover = land.hover.is_some();
         let stroke_width = 2.0;
@@ -89,16 +91,14 @@ fn draw_land_layer_system(
             PICO8_DARK_GRAY
         };
         draw.rect(
-            Vec2::ZERO - LAND_GAP - stroke_width * 0.5,
+            Vec2::ZERO, // - LAND_GAP - stroke_width * 0.5,
             LAND_SIZE * tile_with_gap + LAND_GAP * 2.0,
         )
         .alpha(0.4)
         .origin(Vec2::splat(0.5))
-        .translate(pos.0)
+        .translate(relative_pos - stroke_width * 0.5)
         .stroke_color(stroke_color)
         .stroke(stroke_width);
-
-        let relative_pos = pos.0 - LAND_GAP;
 
         // inner grid
         let UVec2 { x: cols, y: rows } = LAND_SIZE.as_uvec2();

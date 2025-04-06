@@ -1,4 +1,7 @@
-use rkit::prelude::*;
+use rkit::{
+    draw::{Draw2D, Sprite},
+    prelude::*,
+};
 
 #[derive(Component, Clone, Copy)]
 pub struct UILoadLayout;
@@ -8,6 +11,133 @@ pub struct UIGameLayout;
 
 pub fn ui_plugin(app: &mut App) {
     app.add_systems(OnUpdate, click::dispatch_on_click_system);
+}
+
+pub mod btns {
+    use rkit::{
+        draw::{Draw2D, Sprite},
+        math::Vec2,
+        prelude::*,
+    };
+
+    use crate::consts::*;
+
+    #[derive(Component, Debug, Clone)]
+    #[require(UIStyle, UIRender(img_btn_render_component), UINodeType(|| UINodeType::Image))]
+    pub struct UIImgButton {
+        pub sprite: Sprite,
+        pub text: String,
+        pub enabled: bool,
+    }
+
+    fn img_btn_render_component() -> UIRender {
+        UIRender::run::<(&UIImgButton, &UINode), _>(render_img_btn)
+    }
+
+    fn render_img_btn(draw: &mut Draw2D, (btn, node): (&UIImgButton, &UINode)) {
+        let scale = node.size() / btn.sprite.size();
+
+        draw.image(&btn.sprite)
+            .alpha(0.5)
+            .scale(scale)
+            .origin(Vec2::splat(0.5))
+            .translate(node.size() * 0.5);
+
+        draw.text(&btn.text)
+            .translate(node.size() * 0.5)
+            .color(PICO8_WHITE)
+            .size(8.0)
+            .scale(Vec2::splat(0.5))
+            .h_align_center()
+            .origin(Vec2::splat(0.5));
+
+        let color = if btn.enabled {
+            PICO8_GREEN
+        } else {
+            PICO8_LIGHT_GRAY
+        };
+
+        draw.rect(Vec2::ZERO, node.size() + 2.0)
+            .translate(node.size() * 0.5)
+            .origin(Vec2::splat(0.5))
+            .stroke_color(color)
+            .stroke(2.0)
+            .alpha(0.8);
+    }
+}
+
+pub mod counter {
+    use rkit::{
+        draw::{HAlign, Sprite},
+        gfx::Color,
+        prelude::*,
+        random,
+    };
+
+    use crate::consts::*;
+
+    pub fn create_img_counter<C: Component, L: Component + Copy>(
+        cmds: &mut Commands,
+        layout: L,
+        img: &Sprite,
+        text_marker: C,
+        color: Color,
+    ) -> Entity {
+        let container = cmds
+            .spawn_ui_node(
+                layout,
+                (
+                    UIContainer {
+                        bg_color: Some(color),
+                        border_color: Some(PICO8_LIGHT_GRAY),
+                        border_size: 1.0,
+                    },
+                    UIStyle::default()
+                        .flex_row()
+                        .gap_x(10.0)
+                        .max_height(18.0)
+                        // .min_width(100.0)
+                        .padding_left(4.0)
+                        .padding_right(6.0)
+                        .padding_y(2.0)
+                        .justify_content_space_between()
+                        // .align_self_center()
+                        .align_items_center(),
+                ),
+            )
+            .entity_id();
+
+        let img_c = cmds
+            .spawn_ui_node(
+                layout,
+                UIImage {
+                    sprite: img.clone(),
+                },
+            )
+            .entity_id();
+
+        cmds.add_ui_child(layout, container, img_c);
+
+        let txt_c = cmds
+            .spawn_ui_node(
+                layout,
+                (
+                    text_marker,
+                    UIText {
+                        text: random::range::<u32>(0..12345).to_string(),
+                        color: PICO8_WHITE,
+                        size: 8.0,
+                        h_align: HAlign::Center,
+                        ..Default::default()
+                    },
+                ),
+            )
+            .entity_id();
+
+        cmds.add_ui_child(layout, container, txt_c);
+
+        container
+    }
 }
 
 pub mod load_bar {

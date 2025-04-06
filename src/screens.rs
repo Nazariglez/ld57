@@ -18,10 +18,14 @@ mod game_screen {
     use rkit::{gfx::Color, prelude::*};
 
     use crate::{
+        assets::Assets,
         camera::Cam,
-        consts::PICO8_WHITE,
+        consts::{
+            PICO8_BLACK, PICO8_BLUE, PICO8_BROWN, PICO8_DARK_PURPLE, PICO8_INDIGO, PICO8_ORANGE,
+            PICO8_PEACH, PICO8_RED, PICO8_WHITE,
+        },
         game::game_plugin,
-        ui::{UIGameLayout, load_bar::UILoadBar},
+        ui::{UIGameLayout, btns::UIImgButton, counter::create_img_counter, load_bar::UILoadBar},
     };
 
     use super::AppScreen;
@@ -34,23 +38,313 @@ mod game_screen {
             .add_plugin(game_plugin);
     }
 
-    fn setup_system(mut cmds: Commands) {
+    #[derive(Debug, Component, Clone, Copy)]
+    struct MoneyCounter;
+    #[derive(Debug, Component, Clone, Copy)]
+    struct CobberCounter;
+    #[derive(Debug, Component, Clone, Copy)]
+    struct IronCounter;
+    #[derive(Debug, Component, Clone, Copy)]
+    struct SilverCounter;
+    #[derive(Debug, Component, Clone, Copy)]
+    struct GoldCounter;
+    #[derive(Debug, Component, Clone, Copy)]
+    struct WoodCounter;
+    #[derive(Debug, Component, Clone, Copy)]
+    struct FoodCounter;
+    #[derive(Debug, Component, Clone, Copy)]
+    struct PeopleCounter;
+    #[derive(Debug, Component, Clone, Copy)]
+    struct RingCounter;
+
+    fn setup_system(mut cmds: Commands, assets: Res<Assets>) {
         let layout = UIGameLayout;
         let root = cmds
             .spawn_ui_node(
                 layout,
                 (
                     UIContainer {
-                        // bg_color: Some(Color::RED),
                         ..Default::default()
                     },
                     UIStyle::default()
+                        .flex_col()
                         .size_full()
                         .justify_content_center()
                         .align_items_center(),
                 ),
             )
             .entity_id();
+
+        let top = cmds
+            .spawn_ui_node(
+                layout,
+                (
+                    UIContainer {
+                        ..Default::default()
+                    },
+                    UIStyle::default()
+                        .size_full()
+                        .justify_content_space_between()
+                        // .justify_content_center()
+                        .align_items_center(),
+                ),
+            )
+            .entity_id();
+        cmds.add_ui_child(layout, root, top);
+
+        let counters_container = cmds
+            .spawn_ui_node(
+                layout,
+                (
+                    UIContainer {
+                        // bg_color: Some(PICO8_RED),
+                        ..Default::default()
+                    },
+                    UIStyle::default()
+                        .width(Unit::Relative(0.2))
+                        .max_width(200.0)
+                        .align_self_start()
+                        .flex_col()
+                        .gap_y(1.0)
+                        .padding_top(4.0)
+                        .padding_left(4.0),
+                ),
+            )
+            .entity_id();
+
+        cmds.add_ui_child(layout, top, counters_container);
+
+        {
+            let counter = create_img_counter(
+                &mut cmds,
+                layout,
+                &assets.cobber,
+                CobberCounter,
+                PICO8_BLACK,
+            );
+
+            cmds.add_ui_child(layout, counters_container, counter);
+
+            let counter =
+                create_img_counter(&mut cmds, layout, &assets.iron, IronCounter, PICO8_BLACK);
+
+            cmds.add_ui_child(layout, counters_container, counter);
+
+            let counter = create_img_counter(
+                &mut cmds,
+                layout,
+                &assets.silver,
+                SilverCounter,
+                PICO8_BLACK,
+            );
+
+            cmds.add_ui_child(layout, counters_container, counter);
+
+            let counter =
+                create_img_counter(&mut cmds, layout, &assets.gold, GoldCounter, PICO8_BLACK);
+
+            cmds.add_ui_child(layout, counters_container, counter);
+
+            let counter =
+                create_img_counter(&mut cmds, layout, &assets.wood, WoodCounter, PICO8_BLACK);
+
+            cmds.add_ui_child(layout, counters_container, counter);
+
+            let counter =
+                create_img_counter(&mut cmds, layout, &assets.food, FoodCounter, PICO8_BLACK);
+
+            cmds.add_ui_child(layout, counters_container, counter);
+
+            let counter = create_img_counter(
+                &mut cmds,
+                layout,
+                &assets.people,
+                PeopleCounter,
+                PICO8_BLACK,
+            );
+
+            cmds.add_ui_child(layout, counters_container, counter);
+
+            let counter =
+                create_img_counter(&mut cmds, layout, &assets.ring, RingCounter, PICO8_BLACK);
+
+            cmds.add_ui_child(layout, counters_container, counter);
+        }
+
+        let money_container = cmds
+            .spawn_ui_node(
+                layout,
+                (
+                    UIContainer {
+                        ..Default::default()
+                    },
+                    UIStyle::default()
+                        .width(Unit::Relative(0.2))
+                        .padding_top(4.0)
+                        .justify_content_center()
+                        .align_self_start(), // .align_items_center(),
+                ),
+            )
+            .entity_id();
+        cmds.add_ui_child(layout, top, money_container);
+
+        let counter = create_img_counter(
+            &mut cmds,
+            layout,
+            &assets.money,
+            MoneyCounter,
+            PICO8_DARK_PURPLE,
+        );
+
+        cmds.add_ui_child(layout, money_container, counter);
+
+        let options_container = cmds
+            .spawn_ui_node(
+                layout,
+                (
+                    UIContainer {
+                        bg_color: Some(PICO8_RED),
+                        ..Default::default()
+                    },
+                    UIStyle::default().width(Unit::Relative(0.2)),
+                ),
+            )
+            .entity_id();
+        cmds.add_ui_child(layout, top, options_container);
+
+        let bottom = cmds
+            .spawn_ui_node(
+                layout,
+                (
+                    UIContainer {
+                        // bg_color: Some(Color::GREEN),
+                        ..Default::default()
+                    },
+                    UIStyle::default()
+                        .flex_row()
+                        .gap_x(8.0)
+                        .size_full()
+                        .justify_content_center()
+                        .align_items_end()
+                        .padding_bottom(4.0),
+                ),
+            )
+            .entity_id();
+        cmds.add_ui_child(layout, root, bottom);
+
+        {
+            let btn1 = cmds
+                .spawn_ui_node(
+                    layout,
+                    (
+                        UIImgButton {
+                            sprite: assets.land.clone(),
+                            text: "Land".to_string(),
+                            enabled: false,
+                        },
+                        UIStyle::default().size(32.0, 32.0),
+                    ),
+                )
+                .entity_id();
+
+            cmds.add_ui_child(layout, bottom, btn1);
+
+            let btn2 = cmds
+                .spawn_ui_node(
+                    layout,
+                    (
+                        UIImgButton {
+                            sprite: assets.mine.clone(),
+                            text: "Mine".to_string(),
+                            enabled: false,
+                        },
+                        UIStyle::default().size(32.0, 32.0),
+                    ),
+                )
+                .entity_id();
+
+            cmds.add_ui_child(layout, bottom, btn2);
+
+            let btn3 = cmds
+                .spawn_ui_node(
+                    layout,
+                    (
+                        UIImgButton {
+                            sprite: assets.shop.clone(),
+                            text: "Shop".to_string(),
+                            enabled: false,
+                        },
+                        UIStyle::default().size(32.0, 32.0),
+                    ),
+                )
+                .entity_id();
+
+            cmds.add_ui_child(layout, bottom, btn3);
+
+            let btn4 = cmds
+                .spawn_ui_node(
+                    layout,
+                    (
+                        UIImgButton {
+                            sprite: assets.factory.clone(),
+                            text: "Factory".to_string(),
+                            enabled: false,
+                        },
+                        UIStyle::default().size(32.0, 32.0),
+                    ),
+                )
+                .entity_id();
+
+            cmds.add_ui_child(layout, bottom, btn4);
+
+            let btn5 = cmds
+                .spawn_ui_node(
+                    layout,
+                    (
+                        UIImgButton {
+                            sprite: assets.forest.clone(),
+                            text: "Forest".to_string(),
+                            enabled: true,
+                        },
+                        UIStyle::default().size(32.0, 32.0),
+                    ),
+                )
+                .entity_id();
+
+            cmds.add_ui_child(layout, bottom, btn5);
+
+            let btn6 = cmds
+                .spawn_ui_node(
+                    layout,
+                    (
+                        UIImgButton {
+                            sprite: assets.house.clone(),
+                            text: "House".to_string(),
+                            enabled: false,
+                        },
+                        UIStyle::default().size(32.0, 32.0),
+                    ),
+                )
+                .entity_id();
+
+            cmds.add_ui_child(layout, bottom, btn6);
+
+            let btn7 = cmds
+                .spawn_ui_node(
+                    layout,
+                    (
+                        UIImgButton {
+                            sprite: assets.farm.clone(),
+                            text: "Farm".to_string(),
+                            enabled: false,
+                        },
+                        UIStyle::default().size(32.0, 32.0),
+                    ),
+                )
+                .entity_id();
+
+            cmds.add_ui_child(layout, bottom, btn7);
+        }
     }
 
     fn cleanup_system(mut cmds: Commands, ui_nodes: Query<Entity, With<UIGameLayout>>) {

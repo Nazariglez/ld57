@@ -121,6 +121,7 @@ pub struct Assets {
     pub factory: Sprite,
     pub shop: Sprite,
     pub mine: Sprite,
+    pub land: Sprite,
 }
 
 impl Assets {
@@ -155,6 +156,7 @@ impl Assets {
             spritesheet.clone_with_frame(Rect::new(vec2(TILE_SIZE * 3.0, row), tile_size));
         let shop = spritesheet.clone_with_frame(Rect::new(vec2(TILE_SIZE * 4.0, row), tile_size));
         let mine = spritesheet.clone_with_frame(Rect::new(vec2(TILE_SIZE * 5.0, row), tile_size));
+        let land = spritesheet.clone_with_frame(Rect::new(vec2(TILE_SIZE * 6.0, row), tile_size));
 
         Ok(Self {
             font,
@@ -176,6 +178,7 @@ impl Assets {
             factory,
             shop,
             mine,
+            land,
         })
     }
 }
