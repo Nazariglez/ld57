@@ -6,7 +6,12 @@ use rkit::{
 };
 use strum_macros::EnumIter;
 
-use crate::{camera::Cam, components::Pos, consts::*, screens::AppScreen};
+use crate::{
+    camera::{Cam, GameCam},
+    components::Pos,
+    consts::*,
+    screens::AppScreen,
+};
 
 pub fn game_plugin(app: &mut App) {
     let screen = AppScreen::Game;
@@ -29,6 +34,18 @@ pub enum BuildKind {
     Factory,
     Shop,
     Mine,
+}
+
+#[derive(Component, Clone, Copy, EnumIter)]
+pub enum ResourceKind {
+    Copper,
+    Iron,
+    Silver,
+    Gold,
+    Woord,
+    Food,
+    People,
+    Ring,
 }
 
 #[derive(Component, Default)]
@@ -77,7 +94,11 @@ fn on_added_building_system(
     });
 }
 
-fn find_focus_system(mut lands: Query<(&mut Land, &Pos)>, mouse: Res<Mouse>, cam: Single<&Cam>) {
+fn find_focus_system(
+    mut lands: Query<(&mut Land, &Pos)>,
+    mouse: Res<Mouse>,
+    cam: Single<&Cam, With<GameCam>>,
+) {
     let local_pos = cam.screen_to_local(mouse.position());
     lands.iter_mut().for_each(|(mut land, pos)| {
         let bounds = land.bounds(pos.0);

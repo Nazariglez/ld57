@@ -8,7 +8,7 @@ use rkit::{
 
 use crate::{
     assets::Assets,
-    camera::Cam,
+    camera::{Cam, GameCam, UICam},
     components::Pos,
     consts::*,
     game::{BuildKind, Building, Land},
@@ -19,7 +19,7 @@ use crate::{
 
 pub fn render_plugin(app: &mut App) {
     app.add_systems(OnSetup, init_resources_system)
-        .add_screen_systems(AppScreen::Game, OnRender, render);
+        .add_screen_systems(AppScreen::Game, OnRender, (render, draw_ui_system).chain());
 }
 
 // - pipeline systems
@@ -62,6 +62,16 @@ fn render(world: &mut World) {
         (r_sys.callback)(world, &mut draw).unwrap();
     });
 
+    rtf(&draw).unwrap();
+}
+
+fn draw_ui_system(world: &mut World) {
+    let mut draw = create_draw_2d();
+    draw.set_round_pixels(true);
+    {
+        let cam = world.query_filtered::<&Cam, With<UICam>>().single(world);
+        draw.set_camera(cam.deref());
+    }
     draw_ui_layout::<UIGameLayout>(&mut draw, world);
 
     rtf(&draw).unwrap();
@@ -72,7 +82,7 @@ fn draw_land_layer_system(
     mut draw: InMut<Draw2D>,
     lands: Query<(&Land, &Pos)>,
     buildings: Query<(&BuildKind, &Building)>,
-    cam: Single<&Cam>,
+    cam: Single<&Cam, With<GameCam>>,
     assets: Res<Assets>,
 ) {
     draw.set_camera(cam.into_inner().deref());

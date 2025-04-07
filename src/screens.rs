@@ -15,17 +15,23 @@ pub fn screens_plugin(app: &mut App) {
 mod game_screen {
     use std::ops::Deref;
 
-    use rkit::{gfx::Color, prelude::*};
+    use rkit::{gfx::Color, math::vec2, prelude::*};
 
     use crate::{
         assets::Assets,
-        camera::Cam,
+        camera::{Cam, GameCam, UICam},
         consts::{
             PICO8_BLACK, PICO8_BLUE, PICO8_BROWN, PICO8_DARK_PURPLE, PICO8_INDIGO, PICO8_ORANGE,
             PICO8_PEACH, PICO8_RED, PICO8_WHITE,
         },
-        game::game_plugin,
-        ui::{UIGameLayout, btns::UIImgButton, counter::create_img_counter, load_bar::UILoadBar},
+        game::{ResourceKind, game_plugin},
+        ui::{
+            UIGameLayout,
+            btns::UIImgButton,
+            counter::{CounterInfo, create_img_counter},
+            load_bar::UILoadBar,
+            tooltip::{ResInfo, TooltipContainer, create_btn_info_tooltip},
+        },
     };
 
     use super::AppScreen;
@@ -41,7 +47,7 @@ mod game_screen {
     #[derive(Debug, Component, Clone, Copy)]
     struct MoneyCounter;
     #[derive(Debug, Component, Clone, Copy)]
-    struct CobberCounter;
+    struct CopperCounter;
     #[derive(Debug, Component, Clone, Copy)]
     struct IronCounter;
     #[derive(Debug, Component, Clone, Copy)]
@@ -118,15 +124,22 @@ mod game_screen {
             let counter = create_img_counter(
                 &mut cmds,
                 layout,
-                &assets.cobber,
-                CobberCounter,
+                &assets.copper,
+                CopperCounter,
                 PICO8_BLACK,
+                (),
             );
 
             cmds.add_ui_child(layout, counters_container, counter);
 
-            let counter =
-                create_img_counter(&mut cmds, layout, &assets.iron, IronCounter, PICO8_BLACK);
+            let counter = create_img_counter(
+                &mut cmds,
+                layout,
+                &assets.iron,
+                IronCounter,
+                PICO8_BLACK,
+                (),
+            );
 
             cmds.add_ui_child(layout, counters_container, counter);
 
@@ -136,22 +149,41 @@ mod game_screen {
                 &assets.silver,
                 SilverCounter,
                 PICO8_BLACK,
+                (),
             );
 
             cmds.add_ui_child(layout, counters_container, counter);
 
-            let counter =
-                create_img_counter(&mut cmds, layout, &assets.gold, GoldCounter, PICO8_BLACK);
+            let counter = create_img_counter(
+                &mut cmds,
+                layout,
+                &assets.gold,
+                GoldCounter,
+                PICO8_BLACK,
+                (),
+            );
 
             cmds.add_ui_child(layout, counters_container, counter);
 
-            let counter =
-                create_img_counter(&mut cmds, layout, &assets.wood, WoodCounter, PICO8_BLACK);
+            let counter = create_img_counter(
+                &mut cmds,
+                layout,
+                &assets.wood,
+                WoodCounter,
+                PICO8_BLACK,
+                (),
+            );
 
             cmds.add_ui_child(layout, counters_container, counter);
 
-            let counter =
-                create_img_counter(&mut cmds, layout, &assets.food, FoodCounter, PICO8_BLACK);
+            let counter = create_img_counter(
+                &mut cmds,
+                layout,
+                &assets.food,
+                FoodCounter,
+                PICO8_BLACK,
+                (),
+            );
 
             cmds.add_ui_child(layout, counters_container, counter);
 
@@ -161,12 +193,19 @@ mod game_screen {
                 &assets.people,
                 PeopleCounter,
                 PICO8_BLACK,
+                (),
             );
 
             cmds.add_ui_child(layout, counters_container, counter);
 
-            let counter =
-                create_img_counter(&mut cmds, layout, &assets.ring, RingCounter, PICO8_BLACK);
+            let counter = create_img_counter(
+                &mut cmds,
+                layout,
+                &assets.ring,
+                RingCounter,
+                PICO8_BLACK,
+                (),
+            );
 
             cmds.add_ui_child(layout, counters_container, counter);
         }
@@ -194,6 +233,7 @@ mod game_screen {
             &assets.money,
             MoneyCounter,
             PICO8_DARK_PURPLE,
+            (CounterInfo, UIPointer::default()),
         );
 
         cmds.add_ui_child(layout, money_container, counter);
@@ -345,6 +385,41 @@ mod game_screen {
 
             cmds.add_ui_child(layout, bottom, btn7);
         }
+
+        let tooltip = cmds
+            .spawn_ui_node(
+                layout,
+                (
+                    TooltipContainer,
+                    UIContainer::default(),
+                    UIStyle::default()
+                        .absolute()
+                        .size_full()
+                        .align_items_start(),
+                ),
+            )
+            .entity_id();
+
+        let btn = create_btn_info_tooltip(
+            &mut cmds,
+            layout,
+            "Food",
+            &[
+                ResInfo {
+                    kind: ResourceKind::People,
+                    amount: 10.0,
+                },
+                ResInfo {
+                    kind: ResourceKind::Food,
+                    amount: -10.0,
+                },
+            ],
+            assets.as_ref(),
+            (),
+            vec2(100.0, 100.0),
+        );
+
+        cmds.add_ui_child(layout, tooltip, btn);
     }
 
     fn cleanup_system(mut cmds: Commands, ui_nodes: Query<Entity, With<UIGameLayout>>) {
@@ -354,8 +429,9 @@ mod game_screen {
             .for_each(|e| cmds.despawn_ui_node(UIGameLayout, e));
     }
 
-    fn update_system(cam: Single<&Cam>, mut layout: ResMut<UILayout<UIGameLayout>>) {
-        layout.set_camera(cam.into_inner().deref());
+    fn update_system(cam: Single<&Cam, With<UICam>>, mut layout: ResMut<UILayout<UIGameLayout>>) {
+        let ui_cam = cam.into_inner();
+        layout.set_camera(&ui_cam.cam);
     }
 }
 
@@ -366,7 +442,7 @@ mod load_screen {
 
     use crate::{
         assets::{AssetLoader, init_assets},
-        camera::Cam,
+        camera::{Cam, UICam},
         consts::*,
         postfx::rtf,
         ui::{UILoadLayout, load_bar::UILoadBar},
@@ -413,7 +489,7 @@ mod load_screen {
     }
 
     fn update_system(
-        cam: Single<&Cam>,
+        cam: Single<&Cam, With<UICam>>,
         load_bar: Single<&mut UILoadBar, With<UILoadLayout>>,
         loader: Option<Res<AssetLoader>>,
         time: Res<Time>,
@@ -469,7 +545,7 @@ mod load_screen {
     }
 
     fn draw_system(world: &mut World) {
-        let cam = world.query::<&Cam>().single(world);
+        let cam = world.query_filtered::<&Cam, With<UICam>>().single(world);
         let mut draw = create_draw_2d();
         draw.set_round_pixels(true);
         draw.set_camera(cam.deref());

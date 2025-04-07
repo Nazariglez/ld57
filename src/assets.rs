@@ -107,7 +107,7 @@ pub struct Assets {
     pub dotted_square: Sprite,
     pub white_square: Sprite,
     pub money: Sprite,
-    pub cobber: Sprite,
+    pub copper: Sprite,
     pub iron: Sprite,
     pub silver: Sprite,
     pub gold: Sprite,
@@ -139,7 +139,7 @@ impl Assets {
 
         let row = TILE_SIZE * 2.0;
         let money = spritesheet.clone_with_frame(Rect::new(vec2(0.0, row), tile_size));
-        let cobber = spritesheet.clone_with_frame(Rect::new(vec2(TILE_SIZE, row), tile_size));
+        let copper = spritesheet.clone_with_frame(Rect::new(vec2(TILE_SIZE, row), tile_size));
         let iron = spritesheet.clone_with_frame(Rect::new(vec2(TILE_SIZE * 2.0, row), tile_size));
         let silver = spritesheet.clone_with_frame(Rect::new(vec2(TILE_SIZE * 3.0, row), tile_size));
         let gold = spritesheet.clone_with_frame(Rect::new(vec2(TILE_SIZE * 4.0, row), tile_size));
@@ -164,7 +164,7 @@ impl Assets {
             dotted_square,
             white_square,
             money,
-            cobber,
+            copper,
             iron,
             silver,
             gold,

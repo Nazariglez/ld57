@@ -12,6 +12,12 @@ pub fn camera_plugin(app: &mut App) {
         .add_systems(OnPreRender, update_camera_system);
 }
 
+#[derive(Component, Clone, Copy)]
+pub struct GameCam;
+
+#[derive(Component, Clone, Copy)]
+pub struct UICam;
+
 #[derive(Component, Deref)]
 pub struct Cam {
     #[deref]
@@ -45,7 +51,17 @@ impl Cam {
 }
 
 fn init_cam_system(mut cmds: Commands, win: Res<Window>) {
-    cmds.spawn((Cam::new(win.size(), RESOLUTION), Pos(RESOLUTION * 0.5)));
+    cmds.spawn((
+        GameCam,
+        Cam::new(win.size(), RESOLUTION),
+        Pos(RESOLUTION * 0.5),
+    ));
+
+    cmds.spawn((
+        UICam,
+        Cam::new(win.size(), UI_RESOLUTION),
+        Pos(UI_RESOLUTION * 0.5),
+    ));
 }
 
 fn update_camera_system(
